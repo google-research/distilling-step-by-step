@@ -55,3 +55,14 @@ python run.py --from_pretrained google/t5-v1_1-base --dataset cqa --model_type s
 ```
 python run.py --from_pretrained google/t5-v1_1-base --dataset cqa --model_type task_prefix --label_type llm --llm palm --alpha 0.5 --batch_size 64
 ```
+
+## Cite
+If you find this repository useful, please consider citing:
+```
+@article{hsieh2023distilling,
+  title={Distilling step-by-step! outperforming larger language models with less training data and smaller model sizes},
+  author={Hsieh, Cheng-Yu and Li, Chun-Liang and Yeh, Chih-Kuan and Nakhost, Hootan and Fujii, Yasuhisa and Ratner, Alexander and Krishna, Ranjay and Lee, Chen-Yu and Pfister, Tomas},
+  journal={arXiv preprint arXiv:2305.02301},
+  year={2023}
+}
+```
