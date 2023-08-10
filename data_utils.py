@@ -57,7 +57,7 @@ class DatasetLoader(object):
             datasets[v].to_json(f'{self.data_root}/{self.dataset_name}/{self.dataset_name}_{k}.json')
 
 
-    def load_from_json(self):
+    def load_from_json(self, TQ_post_process=False):
         data_files = {
             'train': f'{self.data_root}/{self.dataset_name}/{self.dataset_name}_train.json',
             'test': f'{self.data_root}/{self.dataset_name}/{self.dataset_name}_test.json',
@@ -67,7 +67,7 @@ class DatasetLoader(object):
             data_files.update({'valid': f'{self.data_root}/{self.dataset_name}/{self.dataset_name}_valid.json',})
 
         datasets = load_dataset('json', data_files=data_files)
-        datasets = self._post_process(datasets) 
+        datasets = self._post_process(datasets, TQ_post_process=TQ_post_process)
 
         # subsample training dataset if needed
         num_train = len(datasets['train'])
@@ -111,7 +111,7 @@ class DatasetLoader(object):
         return rationales, labels
 
 
-    def _post_process(self, datasets):
+    def _post_process(self, datasets, TQ_post_process=False):
         raise NotImplementedError
 
 
@@ -141,25 +141,38 @@ class CQADatasetLoader(DatasetLoader):
                  batch_size, train_batch_idxs, test_batch_idxs, valid_batch_idxs=None)
 
 
-    def _post_process(self, datasets):
+    def _post_process(self, datasets, TQ_post_process=False):
         
-        def prepare_input(example):
-            question = example['question']
-            c_0 = example['choices'][0]
-            c_1 = example['choices'][1]
-            c_2 = example['choices'][2]
-            c_3 = example['choices'][3]
-            c_4 = example['choices'][4]
+        if not TQ_post_process:
+            def prepare_input(example):
+                question = example['question']
+                c_0 = example['choices'][0]
+                c_1 = example['choices'][1]
+                c_2 = example['choices'][2]
+                c_3 = example['choices'][3]
+                c_4 = example['choices'][4]
 
-            input = f'{question}\nAnswer Choices:\n(a) {c_0}\n(b) {c_1}\n(c) {c_2}\n(d) {c_3}\n(e) {c_4}'
+                input = f'{question}\nAnswer Choices:\n(a) {c_0}\n(b) {c_1}\n(c) {c_2}\n(d) {c_3}\n(e) {c_4}'
 
-            example['input'] = input
-            example['label'] = example['answer']
+                example['input'] = input
+                example['label'] = example['answer']
 
-            return example
+                return example
+        else:
+            def prepare_input(example):
+                example["c_0"] = example["choices"][0]
+                example["c_1"] = example["choices"][1]
+                example["c_2"] = example["choices"][2]
+                example["c_3"] = example["choices"][3]
+                example["c_4"] = example["choices"][4]
+
+                return example
 
         datasets = datasets.map(prepare_input)
-        datasets = datasets.remove_columns(['id', 'question', 'choices', 'answer', 'abstractive_explanation', 'extractive_explanation'])
+        if not TQ_post_process:
+            datasets = datasets.remove_columns(['id', 'question', 'choices', 'answer', 'abstractive_explanation', 'extractive_explanation'])
+        else:
+            datasets = datasets.remove_columns(["abstractive_explanation", "extractive_explanation"])
 
         return datasets
 
@@ -247,7 +260,7 @@ class SVAMPDatasetLoader(DatasetLoader):
         return datasets
         
 
-    def _post_process(self, datasets):
+    def _post_process(self, datasets, TQ_post_process=False):
         return datasets
 
 
@@ -309,7 +322,7 @@ class ASDivDatasetLoader(DatasetLoader):
         raise NotImplementedError
         
 
-    def _post_process(self, datasets):
+    def _post_process(self, datasets, TQ_post_process=False):
 
         def prepare_input(example):
             example['input'] = example['Body'] + '\n' + example['Question']
@@ -372,7 +385,7 @@ class ESNLIDatasetLoader(DatasetLoader):
                  batch_size, train_batch_idxs, test_batch_idxs, valid_batch_idxs=valid_batch_idxs)
 
 
-    def _post_process(self, datasets):
+    def _post_process(self, datasets, TQ_post_process=False):
         
         def prepare_input(example):
             if example['label'] == 0:
@@ -417,7 +430,7 @@ class ANLIDatasetLoader(DatasetLoader):
         super().__init__(dataset_name, source_dataset_name, dataset_version, has_valid, split_map,
                  batch_size, train_batch_idxs, test_batch_idxs, valid_batch_idxs=valid_batch_idxs)
 
-    def _post_process(self, datasets):
+    def _post_process(self, datasets, TQ_post_process=False):
         
         def label_idx2text(example):            
             if example['label'] == 0:
