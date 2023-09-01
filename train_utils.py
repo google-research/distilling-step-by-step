@@ -109,7 +109,7 @@ def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics
     
 
     trainer.train()
-    # evaluate the trained model and save the results to a file
-    eval_results = trainer.evaluate()
+    # evaluate the trained model on the final valid split and save the results to a file
+    eval_results = trainer.evaluate(eval_dataset=tokenized_datasets["valid"])
     with open(f'{result_dir}/eval_results.txt', 'w') as f:
         f.write(str(eval_results))
