@@ -21,7 +21,7 @@ import numpy as np
 from datasets import Dataset, DatasetDict, load_dataset
 
 
-DATASET_ROOT = '../datasets'
+DATASET_ROOT = 'datasets'
 
 
 class DatasetLoader(object):
