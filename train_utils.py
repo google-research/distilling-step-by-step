@@ -40,6 +40,7 @@ def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics
     config_dir = get_config_dir(args)
     output_dir = f'ckpts/{config_dir}/{run}'  # for model ckpts
     logging_dir = f'logs/{config_dir}/{run}'  # for training logs
+    result_dir = f'results/{config_dir}/{run}'  # for evaluation results
 
     if args.no_log:
         logging_strategy = 'no'
@@ -57,8 +58,9 @@ def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics
         remove_unused_columns = False,
         evaluation_strategy = 'steps',
         eval_steps=args.eval_steps,
-        save_strategy='no',
+        save_strategy='steps',
         save_steps=args.eval_steps,
+        save_total_limit=1,
         logging_dir=logging_dir,
         logging_strategy=logging_strategy,
         logging_steps=args.eval_steps,
@@ -107,3 +109,7 @@ def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics
     
 
     trainer.train()
+    # evaluate the trained model and save the results to a file
+    eval_results = trainer.evaluate()
+    with open(f'{result_dir}/eval_results.txt', 'w') as f:
+        f.write(str(eval_results))
