@@ -109,6 +109,20 @@ class DatasetLoader(object):
             labels.append(label)
 
         return rationales, labels
+    
+    def load_gpt35_preds(self, split, prompt_mix_id):
+        labels = list()
+        rationales = list()
+        
+        with open(f'{self.data_root}/{self.dataset_name}/gpt_35_turbo/{prompt_mix_id}/{split}_CoT.json') as f:
+            for line in f:
+                output = json.loads(line)
+                rationale, label = output['explanation'], output['label']
+
+                rationales.append(rationale)
+                labels.append(label)
+
+        return rationales, labels
 
 
     def _post_process(self, datasets, TQ_post_process=False):
