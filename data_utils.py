@@ -94,21 +94,6 @@ class DatasetLoader(object):
 
         return rationales, labels
 
-
-    def load_gpt_preds(self, split):
-        labels = list()
-        rationales = list()
-        
-        with open(f'{self.data_root}/gpt-neox/{self.dataset_name}/{split}.json') as f:
-            outputs = json.load(f)
-
-        for output in outputs:
-            rationale, label = self._parse_gpt_output(output)
-
-            rationales.append(rationale)
-            labels.append(label)
-
-        return rationales, labels
     
     def load_gpt35_preds(self, split, prompt_mix_id):
         labels = list()

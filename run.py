@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+## For training on LEQR
+# export TOKENIZERS_PARALLELISM=true
+
 
 import argparse
 
@@ -64,13 +67,19 @@ def run(args):
         else:
             train_llm_rationales, train_llm_labels = dataset_loader.load_llm_preds(split='train')
             test_llm_rationales, test_llm_labels = dataset_loader.load_llm_preds(split='test')
-    elif args.llm == 'gpt':
-        train_llm_rationales, train_llm_labels = dataset_loader.load_gpt_preds(split='train')
-        test_llm_rationales, test_llm_labels = dataset_loader.load_gpt_preds(split='test')
+    elif args.llm == 'gpt35':
+        train_llm_rationales, train_llm_labels = dataset_loader.load_gpt35_preds(split='train', prompt_mix_id=args.prompt_mix)
+        test_llm_rationales, test_llm_labels = dataset_loader.load_gpt35_preds(split='test', prompt_mix_id=args.prompt_mix)
     else:
         raise ValueError
 
     if args.llm is not None:
+        ## in case llm predictions are not available for all examples, crop the datasets
+        if len(train_llm_labels) < len(datasets['train']):
+            datasets['train'] = datasets['train'].select(range(len(train_llm_labels)))
+        if len(test_llm_labels) < len(datasets['test']):
+            datasets['test'] = datasets['test'].select(range(len(test_llm_labels)))
+
         datasets['train'] = datasets['train'].add_column('llm_label', train_llm_labels)
         datasets['test'] = datasets['test'].add_column('llm_label', test_llm_labels)
         datasets['train'] = datasets['train'].add_column('llm_rationale', train_llm_rationales)
@@ -84,10 +93,14 @@ def run(args):
             pass
         elif args.llm == 'palm':
             valid_llm_rationales, valid_llm_labels = dataset_loader.load_llm_preds(split='valid')
-        elif args.llm == 'gpt':
-            valid_llm_rationales, valid_llm_labels = dataset_loader.load_gpt_preds(split='valid')
+        elif args.llm == 'gpt35':
+            valid_llm_rationales, valid_llm_labels = dataset_loader.load_gpt35_preds(split='valid', prompt_mix_id=args.prompt_mix)
         else:
             raise ValueError
+        
+        ## in case llm predictions are not available for all examples, crop the datasets
+        if len(valid_llm_labels) < len(datasets['valid']):
+            datasets['valid'] = datasets['valid'].select(range(len(valid_llm_labels)))
 
         datasets['valid'] = datasets['valid'].add_column('llm_label', valid_llm_labels)
         datasets['valid'] = datasets['valid'].add_column('llm_rationale', valid_llm_rationales)
@@ -217,12 +230,14 @@ if __name__ == '__main__':
     parser.add_argument('--max_input_length', type=int, default=1024)
     parser.add_argument('--grad_steps', type=int, default=1)
     parser.add_argument('--local_rank', type=int, default=-1)
-    parser.add_argument('--gen_max_len', type=int, default=64)
+    parser.add_argument('--gen_max_len', type=int, default=200)#64
     parser.add_argument('--parallelize', action='store_true')
     parser.add_argument('--model_type', type=str, default='task_prefix')
     parser.add_argument('--bf16', action='store_true')
     parser.add_argument('--no_log', action='store_true')
     parser.add_argument('--output_rationale', action='store_true')
+
+    parser.add_argument('--prompt_mix', type=int, default=0)
 
     args = parser.parse_args()
 

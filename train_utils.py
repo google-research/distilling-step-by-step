@@ -26,7 +26,7 @@ from model_utils import TaskPrefixDataCollator, TaskPrefixTrainer
 
 
 def get_config_dir(args):
-    return f'{args.dataset}/{args.from_pretrained.split("/")[1]}/{args.model_type}/{args.llm}/{args.subsample}/{args.label_type}/{args.alpha}/{args.max_input_length}/{args.grad_steps*args.batch_size}/{args.optimizer_name}/{args.lr}'
+    return f'{args.dataset}/{args.from_pretrained.split("/")[1]}/{args.model_type}/{args.llm}/{args.subsample}/{args.prompt_mix}/{args.label_type}/{args.alpha}/{args.max_input_length}/{args.grad_steps*args.batch_size}/{args.optimizer_name}/{args.lr}'
 
 
 def train_and_evaluate(args, run, tokenizer, tokenized_datasets, compute_metrics):
